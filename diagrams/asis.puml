@@ -1,0 +1,10 @@
+@startuml
+!include Context.puml
+Person(user, "User", "A user of the Smart Home, checks current temperature and configures heating system settings")
+System(smartHomeMonolith, "smart Home Monolith", "Monolith responsible for fetching data from sensors, providing users with requested info and applying changes sent by users")
+
+System_Ext(sensor, "Sensor", "Sensor tracking temperature changes")
+
+Rel(user, smartHomeMonolith, "Uses the system")
+Rel(smartHomeMonolith,sensor,"Fetches temperature")
+@enduml
