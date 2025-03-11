@@ -1,0 +1,119 @@
+@startuml
+!include Component.puml
+
+Person(user, "User", "A user of the smart home system")
+
+System_Boundary(smartHomeService, "Smart Home Service") {
+    Container_Boundary(ApiGateway, "API Gateway") {
+        Component(SignInController, "Sign In Controller", "Manages user profiles")
+        Component(ResetPasswordController, "Reset Password Controller", "Manages schedules")
+        Component(SecurityComponent, "Security Component", "Handles payment processing")
+        Component(EmailComponent, "E-mail Component", "Business logic")
+        Component(Router, "Router", "Redirects user requests and service responses")
+    }
+
+    ContainerDb(ApiDB, "Database", "Postgres", "Stores user login, password hash, access log")
+
+    Container_Boundary(LightService, "Light Service") {
+        Component(LightProcessController, "Data Process Controller", "Provides layer of business logic, makes sure that all requests are being correctly processed")
+        Component(LightDataBaseController, "DataBase Controller", "Manages database CRUD, organises data into strictified formats etc")
+        Component(LightRemoteAPIController, "Remote API Controller", "Encapsulate all the logic related to remote Component")
+    }
+
+    ContainerDb(LightDB, "Database", "Postgres", "Stores system id, key:value map of room_id:state in json")
+
+    Container_Boundary(GateService, "Gates Service") {
+        Component(GateProcessController, "Data Process Controller", "Provides layer of business logic, makes sure that all requests are being correctly processed")
+        Component(GateDataBaseController, "DataBase Controller", "Manages database CRUD, organises data into strictified formats etc")
+        Component(GateRemoteAPIController, "Remote API Controller", "Encapsulate all the logic related to remote Component")
+    }
+
+    ContainerDb(GateDB, "Database", "Postgres", "Stores system id, state")
+
+    Container_Boundary(HeaterService, "Heater Service") {
+        Component(HeaterProcessController, "Data Process Controller", "Provides layer of business logic, makes sure that all requests are being correctly processed")
+        Component(HeaterDataBaseController, "DataBase Controller", "Manages database CRUD, organises data into strictified formats etc")
+        Component(HeaterRemoteAPIController, "Remote API Controller", "Encapsulate all the logic related to remote Component")
+    }
+
+    ContainerDb(HeaterDB, "Database", "Postgres", "Store system id, desired and current temperature, state. Also stores data about sensors(last updated and cur temperature)")
+    Container(Kafka, "Kafka", "Kafka message broker for connecting Temperarture sensors with service")
+
+    Container_Boundary(GateService, "Gates Service") {
+        Component(GateProcessController, "Data Process Controller", "Provides layer of business logic, makes sure that all requests are being correctly processed")
+        Component(GateDataBaseController, "DataBase Controller", "Manages database CRUD, organises data into strictified formats etc")
+        Component(GateRemoteAPIController, "Remote API Controller", "Encapsulate all the logic related to remote Component")
+    }
+
+    ContainerDb(GateDB, "Database", "Postgres", "Stores system id, state")
+
+    Container_Boundary(UserService, "User Service") {
+        Component(UserProcessController, "Data Process Controller", "Provides layer of business logic, makes sure that all requests are being correctly processed")
+        Component(UserDataBaseController, "DataBase Controller", "Manages database CRUD, organises data into strictified formats etc")
+    }
+
+    ContainerDb(UserDB, "Database", "Postgres", "Stores system id, included services with ids")
+
+    Container_Boundary(VideoSurveillanceService, "Video Surveillance Service") {
+        Component(VideoProcessController, "Data Process Controller", "Provides layer of business logic, makes sure that all requests are being correctly processed")
+        Component(VideoDataBaseController, "DataBase Controller", "Manages database CRUD, organises data into strictified formats etc")
+        Component(VideoRemoteAPIController, "Remote API Controller", "Encapsulate all the logic related to remote Component")
+    }
+
+    ContainerDb(VideoDB, "Database", "Postgres", "Stores system id, data required for remote camera access, time of last access")
+}
+
+System_Ext(EmailSystem, "Email System")
+System_Ext(Sensors, "Sensors")
+System_Ext(remoteLightController, "Remote Light Controller", "remote controllers responsible for switching the state of light")
+System_Ext(remoteGateController, "Remote Gates Controller", "remote controller responsible for switching the state of gates")
+System_Ext(remoteHeaterController, "Remote Heater Controller", "remote controller responsible for switching the state of heating system")
+System_Ext(remoteGateController, "Remote Gates Controller", "remote controller responsible for switching the state of gates")
+System_Ext(remoteVideoController, "Remote Cameras Controller", "remote controllers responsible for providing camera images")
+
+Rel(user,SignInController,"Makes API calls to")
+Rel(user,ResetPasswordController,"Makes API calls to")
+Rel(user,Router,"Makes API calls to")
+Rel(ResetPasswordController,SecurityComponent,"Uses")
+Rel(ResetPasswordController,EmailComponent,"Uses")
+Rel(EmailComponent,EmailSystem,"Sends E-mail")
+Rel(SignInController,SecurityComponent,"Uses")
+Rel(SecurityComponent,ApiDB,"Fetches/updates data")
+
+Rel(LightProcessController,LightDataBaseController,"sends CRUD")
+Rel(LightProcessController,LightRemoteAPIController,"uses")
+Rel(LightDataBaseController,LightDB,"Fetches/updates data")
+Rel(LightRemoteAPIController,remoteLightController,"Makes API calls to")
+
+Rel(GateProcessController,GateDataBaseController,"sends CRUD")
+Rel(GateProcessController,GateRemoteAPIController,"uses")
+Rel(GateDataBaseController,GateDB,"Fetches/updates data")
+Rel(GateRemoteAPIController,remoteGateController,"Makes API calls to")
+
+Rel(HeaterProcessController,HeaterDataBaseController,"sends CRUD")
+Rel(HeaterProcessController,HeaterRemoteAPIController,"uses")
+Rel(HeaterDataBaseController,HeaterDB,"Fetches/updates data")
+Rel(HeaterRemoteAPIController,remoteHeaterController,"Makes API calls to")
+Rel(HeaterDataBaseController,Kafka,"Receives temperature updates")
+Rel(Sensors,Kafka,"Sends temperature updates")
+
+Rel(GateProcessController,GateDataBaseController,"sends CRUD")
+Rel(GateProcessController,GateRemoteAPIController,"uses")
+Rel(GateDataBaseController,GateDB,"Fetches/updates data")
+Rel(GateRemoteAPIController,remoteGateController,"Makes API calls to")
+
+Rel(UserProcessController,UserDataBaseController,"sends CRUD")
+Rel(UserDataBaseController,UserDB,"Fetches/updates data")
+
+Rel(VideoProcessController,VideoDataBaseController,"sends CRUD")
+Rel(VideoProcessController,VideoRemoteAPIController,"uses")
+Rel(VideoDataBaseController,VideoDB,"Fetches/updates data")
+Rel(VideoRemoteAPIController,remoteVideoController,"Makes API calls to/fetches data using QUIC")
+
+Rel(Router,LightProcessController,"sends/receives requests/responses")
+Rel(Router,HeaterProcessController,"sends/receives requests/responses")
+Rel(Router,GateProcessController,"sends/receives requests/responses")
+Rel(Router,UserProcessController,"sends/receives requests/responses")
+Rel(Router,VideoProcessController,"sends/receives requests/responses")
+
+@enduml
