@@ -1,0 +1,31 @@
+@startuml
+!include Code.puml
+
+class User {
+  +String name
+  +String login
+  +void register()
+  +void login()
+}
+
+class System {
+  +String id
+  +uint32 curTemp
+  +uint32 curTemp
+  +String mode
+  +void alterInfo()
+  +void getInfo()
+}
+
+class Sensor {
+  +String id
+  +String systemID
+  +Date last_updates
+  +uint32 temperature
+  +void updateTemp()
+  +void updateSystem()
+}
+
+User "1" -- "0..*" System : has
+System "1" -- "0..*" Sensor : includes
+@enduml

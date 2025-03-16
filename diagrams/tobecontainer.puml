@@ -1,0 +1,57 @@
+@startuml
+!include Container.puml
+
+Person(user, "User", "A user of the smart home system")
+System(SmartHomeSystem, "Smart Home System", "System managing users smart houses and heating systems,\n  using sensors that are compatible with the system")
+
+Container_Boundary(SmartHomeSystem, "FitLife System") {
+  Container(WebApp, "Web Application", "Handles user interactions")
+  Container(ApiGateway, "API Gateway", "Distributes user requests among services, does authentication and authorisation")
+  Container(HeaterService, "Heater Service", "Manages heater related actions")
+  Container(GatesService, "Gates Service", "Manages gates related actions")
+  Container(LightService, "Light Service", "Manages light related actions")
+  Container(UserService, "User Service", "Manages user related information (ids of used services)")
+  Container(VideoSurveillanceService, "Video Surveillance Service", "Manages video surveilance related actions")
+
+  Container(Kafka, "Kafka", "Kafka message broker for connecting Temperarture sensors with service")
+  Container(HeaterDB, "Database", "Postgres", "Store system id, desired and current temperature, state. Also stores data about sensors(last updated and cur temperature)")
+  Container(LightDB, "Database", "Postgres", "Stores system id, key:value map of room_id:state in json")
+  Container(GatesDB, "Database", "Postgres", "Stores system id, state")
+  Container(UserDB, "Database", "Postgres", "Stores system id, included services with ids")
+  Container(VideoDB, "Database", "Postgres", "Stores system id, data required for remote camera access, time of last access")
+  Container(ApiDB, "Database", "Postgres", "Stores user login, password hash, access log")
+}
+
+System_Ext(sensors, "Temperarture Sensors", "Sensors estimating and sending temperature related data")
+System_Ext(remoteCamerasController, "Remote Cameras Controller", "remote controllers responsible for providing camera images")
+System_Ext(remoteLightController, "Remote Light Controller", "remote controllers responsible for switching the state of light")
+System_Ext(remoteGatesController, "Remote Gates Controller", "remote controller responsible for switching the state of gates")
+System_Ext(remoteHeaterController, "Remote Heater Controller", "remote controller responsible for switching the state of heating system")
+System_Ext(EmailSystem, "Email System")
+
+Rel(user, WebApp, "Uses the system")
+Rel(WebApp,ApiGateway,"Processes data requests")
+Rel(ApiGateway,HeaterService,"Fetches current temperature, desired temperature and state(on/off)")
+Rel(ApiGateway,GatesService,"Fetches state of automatic gates opens/closes it")
+Rel(ApiGateway,LightService,"Fetches state of light/turns it on/off")
+Rel(ApiGateway,VideoSurveillanceService,"Fetches pixels from remote camera")
+Rel(ApiGateway,UserService,"Fetches user services ids")
+
+Rel(ApiGateway,EmailSystem,"Sends Emails")
+
+Rel(Kafka,HeaterService,"Receives temperature updates")
+Rel(sensors,Kafka,"Sends temperature data")
+Rel(HeaterService,HeaterDB,"Fetches/updates data")
+Rel(GatesService,LightDB,"Fetches/updates data")
+Rel(LightService,GatesDB,"Fetches/updates data")
+Rel(UserService,UserDB,"Fetches/updates data")
+Rel(VideoSurveillanceService,VideoDB,"Fetches/updates data")
+Rel(ApiGateway,ApiDB,"Fetches/updates data")
+
+Rel(VideoSurveillanceService,remoteCamerasController,"sends images requests")
+Rel(LightService,remoteLightController,"sends signals t switch state")
+Rel(GatesService,remoteGatesController,"sends signals t switch state")
+Rel(HeaterService,remoteHeaterController,"sends signals t switch state")
+
+
+@enduml
