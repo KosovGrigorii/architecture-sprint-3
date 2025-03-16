@@ -1,0 +1,110 @@
+@startuml
+
+
+' avoid problems with angled crows feet
+skinparam linetype ortho
+
+entity "User" as user {
+  * id : text <<generated>>
+
+  login : text
+  password_hash : text
+}
+
+entity "House" as house {
+  * id : text <<generated>>
+  __
+  user_id : text
+  is_on : bool
+}
+
+entity "System" as system {
+  * id : text <<generated>>
+  __
+  house_id : text
+  type_id : text
+  is_on : bool
+}
+
+entity "Device" as device {
+  * id : text <<generated>>
+  __
+  system_id : text
+  type_id : text
+  serial_number : int64
+  state : json
+}
+
+entity "TelemeteryData" as telemetery {
+  * id : text <<generated>>
+  __
+  system_id : text
+  device_id : text
+  type_id : text
+  state : json
+}
+
+entity "SystemState" as system_st {
+  * id : text <<generated>>
+  __
+  system_id : text
+  state : json
+}
+
+entity "DeviceType" as device_t {
+  * id : text <<generated>>
+  __
+  name : text
+}
+entity "SystemType" as system_t {
+  * id : text <<generated>>
+  __
+  name : text
+}
+entity "TelemeteryType" as telemetery_t {
+  * id : text <<generated>>
+  __
+  name : text
+}
+
+entity "DeviceHistory" as device_history {
+  * id : text <<generated>>
+  created_at: time
+  __
+  device_id : text
+  system_id : text
+  type_id : text
+  serial_number : int64
+  state : json
+}
+entity "SystemHistory" as system_history {
+  * id : text <<generated>>
+  created_at: time
+  __
+  system_id : text
+  house_id : text
+  type_id : text
+  is_on : bool
+}
+entity "HouseHistory" as house_history {
+  * id : text <<generated>>
+  created_at: time
+  __
+  house_id : text
+  user_id : text
+  is_on : bool
+}
+
+user ||--o{ house
+house ||--o{ system
+system ||--o{ device
+system }o--right--|| system_t
+system ||--right--|| system_st
+device }o--right--|| device_t
+system ||--left--o{ telemetery
+device ||--left--o{ telemetery
+telemetery_t ||--right--o{ telemetery
+system ||--right--o{ system_history
+device ||--right--o{ device_history
+house ||--right--o{ house_history
+@enduml
